@@ -1,0 +1,46 @@
+{
+  "name": "journal",
+  "version": "1.0.0",
+  "description": "Creates a personal journal document to be published as a PDF",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "build": "babel src --out-dir dist",
+    "app": "node dist/App.js",
+    "all": "npm run build && npm run app",
+    "ts": "tsup src/* && node ./dist2/App.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosmett/diary.git"
+  },
+  "keywords": [
+    "journal",
+    "personal"
+  ],
+  "author": "rosmett",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rosmett/journal/issues"
+  },
+  "homepage": "https://github.com/rosmett/journal#readme",
+  "dependencies": {
+    "moment": "^2.24.0",
+    "momentjs": "^2.0.0",
+    "pdfkit": "^0.13.0",
+    "svg-to-pdfkit": "^0.1.7"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-rc.1",
+    "@babel/core": "^7.0.0-rc.1",
+    "@babel/node": "^7.0.0-rc.1",
+    "@babel/preset-env": "^7.3.4",
+    "babel-jest": "^24.3.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-watch": "^7.0.0",
+    "jest": "^24.3.1",
+    "tsup": "^6.5.0"
+  }
+}
