@@ -5,11 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest",
-    "build": "babel src --out-dir dist",
-    "app": "node dist/App.js",
-    "all": "npm run build && npm run app",
-    "ts": "tsup src/* && node ./dist2/App.cjs"
+    "ts": "tsup src/* && node ./dist/App.cjs"
   },
   "repository": {
     "type": "git",

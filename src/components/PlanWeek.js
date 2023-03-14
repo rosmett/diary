@@ -9,32 +9,43 @@ import moment from 'moment';
 
 const { lineHeight } = dim;
 const { paleTeal } = colours;
+const {
+  topLine,
+  title,
+  setDefaultFont,
+  ruleLines,
+  ruleCentreVertical,
+  getMidX,
+  getLineY
+} = common;
 
 const reflectPastWeek = (doc, pager, data) => {
   pager.addPage();
+
   let side = pager.getSide(),
     { lx, rx } = common.getLeftAndRightMargins(side);
-
   let weekStart = data.starts,
     weekEnd = moment(weekStart).add(6, 'days'),
     endFormatString = weekStart.format('M') === weekEnd.format('M') ? 'D' : 'MMM D';
   let weekHeading = `${weekStart.format("MMM D")} - ${weekEnd.format(endFormatString)}`;
 
-  common.topLine(doc, side);
-  common.title(doc, `Week ${data.number}`, side);
+  topLine(doc, side);
+  title(doc, `Week ${data.number}`, side);
 
   doc.font('charlotte').fontSize(10);
-  doc.text(weekHeading, rx - 100, common.getLineY(0) + 4, { width: 100, align: 'right', baseline: 'bottom' });
-  common.setDefaultFont(doc);
+  doc.text(weekHeading, rx - 100, getLineY(0) + 4, { width: 100, align: 'right', baseline: 'bottom' });
+  setDefaultFont(doc);
 
-  common.ruleLines(doc, side);
-  common.ruleCentreVertical(doc, side);
+  // Lines
+  ruleLines(doc, side);
+  ruleCentreVertical(doc, side);
 
+  // Top quarters
   doc.fontSize(10);
   let boxWidth = 29, boxHeight = 15, lwgWidth = 100,
-    midX = common.getMidX(side),
+    midX = getMidX(side),
     lwgX = midX - boxWidth - lwgWidth - 5,
-    y1 = common.getLineY(1);
+    y1 = getLineY(1);
   doc.text('Last week\'s goal', lwgX, y1 - 2, { width: lwgWidth, align: 'right', baseline: 'bottom' });
 
   doc.rect(midX - boxWidth - 2, y1 - dim.lineHeight + 4, boxWidth, boxHeight).stroke(paleTeal);
@@ -42,14 +53,60 @@ const reflectPastWeek = (doc, pager, data) => {
 
   doc.text('Actual', midX + boxWidth + 5, y1 - 2, { width: 100, align: 'left', baseline: 'bottom' });
 
-  let y2 = common.getLineY(2);
+  let y2 = getLineY(2);
   doc.addSVG(smiley, midX - 25, y2 - 23.5, { width: 25, height: 25, preserveAspectRatio: 'none' });
   doc.addSVG(needswork, midX, y2 - 23.5, { width: 25, height: 25, preserveAspectRatio: 'none' });
 
+  // Bottom quarters
   common.drawLine(doc, side, 8);
-  let y8 = common.getLineY(8);
-  doc.text('Learnings', lx, y8 + 2);
-  doc.text('Actions', midX + 2, y8 + 2);
+  let y8 = getLineY(8);
+  doc.text('Learnings & Actions', lx, y8 + 2);
+  doc.text('Running Averages', midX + 2, y8 + 2);
+
+  printAvg(doc, side);
+}
+
+const colDefs = {
+  dow: 25,
+  pad: 2,
+  weight: 15,
+  weightBox: 20,
+  weightAvg: 18,
+  sleep: 15,
+  sleepBox: 20,
+  sleepAvg: 15
+};
+
+const calculateColX = (defs, side) => {
+  const cols = {};
+  const reducer = (previousValue, key, currentIndex) => {
+    cols[key] = previousValue;
+    return previousValue + defs[key];
+  }
+  Object.keys(colDefs).reduce(reducer, getMidX(side) + 2);
+
+  return cols;
+};
+
+
+const printAvg = (doc, side) => {
+  const cols = calculateColX(colDefs, side);
+  const boxW = 20, boxH = 12;
+  const colPad = 2;
+  console.log("Running Averages", cols);
+
+  [6, 0, 1, 2, 3, 4, 5].forEach((dow, index) => {
+    const dowLabel = moment().weekday(dow).format("ddd");
+
+    const y = getLineY(10 + index) - 2;
+    doc.font('bold').text(dowLabel, cols.dow, y, { width: colDefs.dow-3, align: 'right', baseline: 'bottom' });
+    doc.font('body').text('W:', cols.weight, y, { baseline: 'bottom' });
+    doc.rect(cols.weightBox, y - boxH, boxW, boxH).lineWidth(0.25).stroke(paleTeal);
+    doc.font('body').text('S:', cols.sleep + colPad, y, { baseline: 'bottom' });
+    doc.rect(cols.sleepBox, y - boxH, boxW, boxH).lineWidth(0.25).stroke(paleTeal);
+  });
+
+  // doc.text('W', weightX, y8 + 2);
 }
 
 const planThisWeek = (doc, pager, data) => {
