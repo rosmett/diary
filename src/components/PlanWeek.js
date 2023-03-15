@@ -16,7 +16,9 @@ const {
   ruleLines,
   ruleCentreVertical,
   getMidX,
-  getLineY
+  getLineY,
+  getLeftAndRightMargins,
+  printHorizontalLine,
 } = common;
 
 const reflectPastWeek = (doc, pager, data) => {
@@ -61,20 +63,17 @@ const reflectPastWeek = (doc, pager, data) => {
   common.drawLine(doc, side, 8);
   let y8 = getLineY(8);
   doc.text('Learnings & Actions', lx, y8 + 2);
-  doc.text('Running Averages', midX + 2, y8 + 2);
 
-  printAvg(doc, side);
+  printTrack(doc, side);
 }
 
 const colDefs = {
-  dow: 25,
-  pad: 2,
-  weight: 15,
-  weightBox: 20,
-  weightAvg: 18,
-  sleep: 15,
-  sleepBox: 20,
-  sleepAvg: 15
+  dow: 30,
+  pad: 5,
+  weightBox: 25,
+  sleepBox: 25,
+  fastBox: 25,
+  exerciseBox: 25
 };
 
 const calculateColX = (defs, side) => {
@@ -89,24 +88,41 @@ const calculateColX = (defs, side) => {
 };
 
 
-const printAvg = (doc, side) => {
+const printTrack = (doc, side) => {
+  const { rx } = getLeftAndRightMargins(side),
+    midX = getMidX(side),
+    y8 = getLineY(8);
   const cols = calculateColX(colDefs, side);
-  const boxW = 20, boxH = 12;
-  const colPad = 2;
-  console.log("Running Averages", cols);
 
-  [6, 0, 1, 2, 3, 4, 5].forEach((dow, index) => {
-    const dowLabel = moment().weekday(dow).format("ddd");
+  doc.rect(midX + 0.25, y8 + 10, rx - midX, getLineY(16) - getLineY(8)).fill('white');
+  doc.fill(paleTeal);
 
-    const y = getLineY(10 + index) - 2;
-    doc.font('bold').text(dowLabel, cols.dow, y, { width: colDefs.dow-3, align: 'right', baseline: 'bottom' });
-    doc.font('body').text('W:', cols.weight, y, { baseline: 'bottom' });
-    doc.rect(cols.weightBox, y - boxH, boxW, boxH).lineWidth(0.25).stroke(paleTeal);
-    doc.font('body').text('S:', cols.sleep + colPad, y, { baseline: 'bottom' });
-    doc.rect(cols.sleepBox, y - boxH, boxW, boxH).lineWidth(0.25).stroke(paleTeal);
-  });
+  // Headings
+  doc.text('Track', midX + 2, y8 + 2);
+  doc.text('W', cols.weightBox, y8 + 2, { width: colDefs.weightBox, align: 'center' });
+  doc.text('S', cols.sleepBox, y8 + 2, { width: colDefs.sleepBox, align: 'center' });
+  doc.text('F', cols.fastBox, y8 + 2, { width: colDefs.fastBox, align: 'center' });
+  doc.text('E', cols.exerciseBox, y8 + 2, { width: colDefs.exerciseBox, align: 'center' });
 
-  // doc.text('W', weightX, y8 + 2);
+  const rowPad = 12, boxPad = 6, boxH = 12;
+
+  const startY = getLineY(9)+10;
+
+  [6, 0, 1, 2, 3, 4, 5, 'Avg']
+    .map((dow, index) => typeof dow === 'string' ? dow : moment().weekday(dow).format("ddd"))
+    .forEach((label, index, rows) => {
+      const y = startY + (index * 18) + (index === rows.length - 1 ? rowPad : 0);
+
+
+      doc.fill(paleTeal);
+      doc.font('bold').text(label + ':', cols.dow, y, { width: colDefs.dow, align: 'right', baseline: 'bottom' });
+      doc.rect(cols.weightBox + (boxPad/2), y - boxH, colDefs.weightBox - boxPad, boxH).lineWidth(0.25).stroke(paleTeal);
+      doc.rect(cols.sleepBox + (boxPad/2), y - boxH, colDefs.sleepBox - boxPad, boxH).lineWidth(0.25).stroke(paleTeal);
+      doc.rect(cols.fastBox + (boxPad/2), y - boxH, colDefs.fastBox - boxPad, boxH).lineWidth(0.25).stroke(paleTeal);
+      doc.rect(cols.exerciseBox + (boxPad/2), y - boxH, colDefs.exerciseBox - boxPad, boxH).lineWidth(0.25).stroke(paleTeal);
+    });
+
+  printHorizontalLine(doc, midX + 2, getLineY(15), rx - midX - 4, { lineWidth: 0.5 })
 }
 
 const planThisWeek = (doc, pager, data) => {
